@@ -10,13 +10,8 @@
             text-align: center;
             padding: 20px;
         }
-        .card {
-            display: inline-block;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
+        .card, #lessonPage {
+            display: none;
         }
         .progress {
             width: 60%;
@@ -42,27 +37,22 @@
             cursor: pointer;
             border-radius: 5px;
         }
-        button:disabled {
-            background: gray;
-            cursor: not-allowed;
-        }
         canvas {
             border: 2px solid black;
             margin-top: 10px;
             cursor: crosshair;
             touch-action: none;
         }
-        #lessonPage {
-            display: none;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
-    <h1>Learn Tamil</h1>
-    <button onclick="showLesson()">UYIR YELUTHUKKAL</button>
-    
+    <div id="homePage">
+        <h1>Learn Tamil</h1>
+        <button onclick="showLessonPage()">UYIR YELUTHUKKAL</button>
+    </div>
+
     <div id="lessonPage">
+        <button onclick="showHomePage()">Home</button>
         <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
         <div class="card">
             <h2 id="tamilCharacter">அ</h2>
@@ -91,8 +81,15 @@
         const ctx = canvas.getContext("2d");
         let isDrawing = false;
 
-        function showLesson() {
+        function showLessonPage() {
+            document.getElementById("homePage").style.display = "none";
             document.getElementById("lessonPage").style.display = "block";
+            updateLesson();
+        }
+
+        function showHomePage() {
+            document.getElementById("lessonPage").style.display = "none";
+            document.getElementById("homePage").style.display = "block";
         }
 
         function updateLesson() {
@@ -100,7 +97,6 @@
             document.getElementById("transliteration").textContent = lessons[currentLesson].transliteration;
             document.getElementById("audioPlayer").src = lessons[currentLesson].audio;
             document.getElementById("progressBar").style.width = ((currentLesson + 1) / lessons.length) * 100 + "%";
-            localStorage.setItem("tamilTutorProgress", currentLesson);
             clearCanvas();
         }
 
@@ -126,50 +122,21 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function startDrawing(event) {
-            isDrawing = true;
-            draw(event);
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-            ctx.beginPath();
-        }
-
-        function draw(event) {
+        canvas.addEventListener("mousedown", () => isDrawing = true);
+        canvas.addEventListener("mouseup", () => isDrawing = false);
+        canvas.addEventListener("mousemove", (event) => {
             if (!isDrawing) return;
-            let x, y;
-            if (event.touches) {
-                let touch = event.touches[0];
-                x = touch.clientX - canvas.getBoundingClientRect().left;
-                y = touch.clientY - canvas.getBoundingClientRect().top;
-            } else {
-                x = event.offsetX;
-                y = event.offsetY;
-            }
             ctx.lineWidth = 5;
             ctx.lineCap = "round";
             ctx.strokeStyle = "black";
-            ctx.lineTo(x, y);
+            ctx.lineTo(event.offsetX, event.offsetY);
             ctx.stroke();
             ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener("mousedown", startDrawing);
-        canvas.addEventListener("mouseup", stopDrawing);
-        canvas.addEventListener("mousemove", draw);
-        
-        canvas.addEventListener("touchstart", startDrawing);
-        canvas.addEventListener("touchend", stopDrawing);
-        canvas.addEventListener("touchmove", draw);
+            ctx.moveTo(event.offsetX, event.offsetY);
+        });
 
         window.onload = function () {
-            let savedProgress = localStorage.getItem("tamilTutorProgress");
-            if (savedProgress) {
-                currentLesson = parseInt(savedProgress);
-            }
-            updateLesson();
+            document.getElementById("lessonPage").style.display = "none";
         };
     </script>
 </body>
