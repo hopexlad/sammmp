@@ -10,31 +10,12 @@
             text-align: center;
             padding: 20px;
         }
-        .card {
-            display: inline-block;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        .progress {
-            width: 60%;
-            height: 10px;
-            background: #ddd;
-            margin: 10px auto;
-            border-radius: 5px;
-            position: relative;
-        }
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background: green;
-            border-radius: 5px;
+        .button-container {
+            margin: 20px;
         }
         button {
-            margin-top: 10px;
             padding: 10px 20px;
+            margin: 10px;
             border: none;
             background: blue;
             color: white;
@@ -42,146 +23,177 @@
             cursor: pointer;
             border-radius: 5px;
         }
-        button:disabled {
-            background: gray;
-            cursor: not-allowed;
+        .grid-table {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .grid-table div {
+            padding: 15px;
+            border: 1px solid black;
+            text-align: center;
+            font-size: 24px;
+            cursor: pointer;
+            background: lightgray;
+            border-radius: 5px;
+        }
+        .grid-table div:hover {
+            background: darkgray;
         }
         canvas {
             border: 2px solid black;
             margin-top: 10px;
-            cursor: crosshair;
-            touch-action: none;
+            background: white;
         }
-        #lessonPage {
+        #homePage, #lessonPage, #tablePage {
             display: none;
         }
     </style>
 </head>
 <body>
+    <!-- Home Page -->
     <div id="homePage">
         <h1>Learn Tamil</h1>
-        <button onclick="goToLessons('uyir')">UYIR YELUTHUKKAL</button>
-        <button onclick="goToLessons('maei')">MAEI YELUTHUKKAL</button>
+        <div class="button-container">
+            <button onclick="goToLessons('uyir')">UYIR YELUTHUKKAL</button>
+            <button onclick="goToLessons('maei')">MAEI YELUTHUKKAL</button>
+            <button onclick="goToTable()">UYIR MAEI YELUTHUKKAL</button>
+        </div>
     </div>
 
+    <!-- Lesson Page for Uyir & Maei -->
     <div id="lessonPage">
         <button onclick="goHome()">🏠 Home</button>
         <h2 id="lessonTitle"></h2>
-        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-        <div class="card">
-            <h2 id="tamilCharacter">அ</h2>
-            <p id="transliteration">a</p>
-            <button onclick="playAudio()">🔊 Pronounce</button>
-            <canvas id="writingCanvas" width="300" height="300"></canvas>
-            <br>
-            <button onclick="clearCanvas()">Clear</button>
-        </div>
+        <p id="tamilCharacter" style="font-size: 50px;"></p>
+        <button onclick="playAudio()">🔊 Pronounce</button>
+        <br><br>
+        
+        <!-- Drawing Canvas -->
+        <canvas id="drawingCanvas" width="300" height="300"></canvas>
         <br>
-        <button id="backBtn" onclick="prevLesson()">Back</button>
-        <button id="nextBtn" onclick="nextLesson()">Next</button>
+        <button onclick="clearCanvas()">🧹 Clear</button>
+        <br><br>
+
+        <button onclick="prevLesson()">Back</button>
+        <button onclick="nextLesson()">Next</button>
         <audio id="audioPlayer"></audio>
     </div>
 
-    <script>
-        const uyirLessons = [
-            { tamil: "அ", transliteration: "a", audio: "audio/a.mp3" },
-            { tamil: "ஆ", transliteration: "aa", audio: "audio/aa.mp3" },
-            { tamil: "இ", transliteration: "i", audio: "audio/i.mp3" }
-        ];
-        
-        const maeiLessons = [
-            { tamil: "க", transliteration: "ka", audio: "audio/ka.mp3" },
-            { tamil: "ங", transliteration: "nga", audio: "audio/nga.mp3" },
-            { tamil: "ச", transliteration: "cha", audio: "audio/cha.mp3" }
-        ];
+    <!-- Uyir Maei Table Page -->
+    <div id="tablePage">
+        <button onclick="goHome()">🏠 Home</button>
+        <h2>UYIR MAEI YELUTHUKKAL</h2>
+        <div class="grid-table" id="letterTable"></div>
+        <audio id="tableAudio"></audio>
+    </div>
 
-        let currentLesson = 0;
-        let currentLessons = [];
-        const canvas = document.getElementById("writingCanvas");
-        const ctx = canvas.getContext("2d");
-        let isDrawing = false;
+    <script>
+        const uyirLetters = ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"];
+        const meiLetters = ["க்", "ங்", "ச்", "ஞ்", "ட்", "ண்", "த்", "ந்", "ப்", "ம்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்", "ற்", "ன்"];
+        const uyirMaeiLetters = [];
+
+        meiLetters.forEach(mei => {
+            uyirLetters.forEach(uyir => {
+                uyirMaeiLetters.push(mei.replace("்", "") + uyir);
+            });
+        });
+
+        let lessonType = "";
+        let lessonIndex = 0;
+        const uyirLesson = uyirLetters;
+        const meiLesson = meiLetters;
 
         function goToLessons(type) {
-            currentLessons = type === 'uyir' ? uyirLessons : maeiLessons;
-            document.getElementById("lessonTitle").textContent = type === 'uyir' ? "UYIR YELUTHUKKAL" : "MAEI YELUTHUKKAL";
+            lessonType = type;
+            lessonIndex = 0;
             document.getElementById("homePage").style.display = "none";
             document.getElementById("lessonPage").style.display = "block";
-            currentLesson = 0;
-            updateLesson();
+            document.getElementById("lessonTitle").textContent = type === "uyir" ? "UYIR YELUTHUKKAL" : "MAEI YELUTHUKKAL";
+            loadLesson();
         }
 
-        function goHome() {
-            document.getElementById("lessonPage").style.display = "none";
-            document.getElementById("homePage").style.display = "block";
-        }
-
-        function updateLesson() {
-            document.getElementById("tamilCharacter").textContent = currentLessons[currentLesson].tamil;
-            document.getElementById("transliteration").textContent = currentLessons[currentLesson].transliteration;
-            document.getElementById("audioPlayer").src = currentLessons[currentLesson].audio;
-            document.getElementById("progressBar").style.width = ((currentLesson + 1) / currentLessons.length) * 100 + "%";
+        function loadLesson() {
+            const lessonArray = lessonType === "uyir" ? uyirLesson : meiLesson;
+            document.getElementById("tamilCharacter").textContent = lessonArray[lessonIndex];
             clearCanvas();
         }
 
-        function playAudio() {
-            document.getElementById("audioPlayer").play();
-        }
-
         function nextLesson() {
-            if (currentLesson < currentLessons.length - 1) {
-                currentLesson++;
-                updateLesson();
+            const lessonArray = lessonType === "uyir" ? uyirLesson : meiLesson;
+            if (lessonIndex < lessonArray.length - 1) {
+                lessonIndex++;
+                loadLesson();
             }
         }
 
         function prevLesson() {
-            if (currentLesson > 0) {
-                currentLesson--;
-                updateLesson();
+            if (lessonIndex > 0) {
+                lessonIndex--;
+                loadLesson();
             }
+        }
+
+        function playAudio() {
+            const letter = document.getElementById("tamilCharacter").textContent;
+            const audioPlayer = document.getElementById("audioPlayer");
+            audioPlayer.src = `audio/${letter}.mp3`;
+            audioPlayer.play();
+        }
+
+        function goToTable() {
+            document.getElementById("homePage").style.display = "none";
+            document.getElementById("tablePage").style.display = "block";
+            generateTable();
+        }
+
+        function generateTable() {
+            const table = document.getElementById("letterTable");
+            table.innerHTML = "";
+            uyirMaeiLetters.forEach(letter => {
+                const cell = document.createElement("div");
+                cell.textContent = letter;
+                cell.onclick = () => playLetterAudio(letter);
+                table.appendChild(cell);
+            });
+        }
+
+        function playLetterAudio(letter) {
+            const audioPlayer = document.getElementById("tableAudio");
+            audioPlayer.src = `audio/${letter}.mp3`;
+            audioPlayer.play();
+        }
+
+        function goHome() {
+            document.getElementById("homePage").style.display = "block";
+            document.getElementById("lessonPage").style.display = "none";
+            document.getElementById("tablePage").style.display = "none";
+        }
+
+        // Drawing Canvas
+        const canvas = document.getElementById("drawingCanvas");
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+
+        canvas.addEventListener("mousedown", () => { drawing = true; });
+        canvas.addEventListener("mouseup", () => { drawing = false; ctx.beginPath(); });
+        canvas.addEventListener("mousemove", draw);
+
+        function draw(event) {
+            if (!drawing) return;
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "black";
+            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
         }
 
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-
-        function startDrawing(event) {
-            isDrawing = true;
-            draw(event);
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-            ctx.beginPath();
-        }
-
-        function draw(event) {
-            if (!isDrawing) return;
-            let x, y;
-            if (event.touches) {
-                let touch = event.touches[0];
-                x = touch.clientX - canvas.getBoundingClientRect().left;
-                y = touch.clientY - canvas.getBoundingClientRect().top;
-            } else {
-                x = event.offsetX;
-                y = event.offsetY;
-            }
-            ctx.lineWidth = 5;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "black";
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener("mousedown", startDrawing);
-        canvas.addEventListener("mouseup", stopDrawing);
-        canvas.addEventListener("mousemove", draw);
-       
-        canvas.addEventListener("touchstart", startDrawing);
-        canvas.addEventListener("touchend", stopDrawing);
-        canvas.addEventListener("touchmove", draw);
     </script>
 </body>
 </html>
