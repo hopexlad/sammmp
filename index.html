@@ -66,6 +66,7 @@
         <button onclick="clearCanvas()">Clear</button>
     </div>
     <br>
+    <button id="backBtn" onclick="prevLesson()">Back</button>
     <button id="nextBtn" onclick="nextLesson()">Next</button>
 
     <audio id="audioPlayer" src="audio/a.mp3"></audio>
@@ -98,6 +99,13 @@
         function nextLesson() {
             if (currentLesson < lessons.length - 1) {
                 currentLesson++;
+                updateLesson();
+            }
+        }
+
+        function prevLesson() {
+            if (currentLesson > 0) {
+                currentLesson--;
                 updateLesson();
             }
         }
