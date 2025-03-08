@@ -46,6 +46,11 @@
             background: gray;
             cursor: not-allowed;
         }
+        canvas {
+            border: 2px solid black;
+            margin-top: 10px;
+            cursor: crosshair;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +60,9 @@
         <h2 id="tamilCharacter">அ</h2>
         <p id="transliteration">a</p>
         <button onclick="playAudio()">🔊 Pronounce</button>
+        <canvas id="writingCanvas" width="300" height="300"></canvas>
+        <br>
+        <button onclick="clearCanvas()">Clear</button>
     </div>
     <br>
     <button id="nextBtn" onclick="nextLesson()">Next</button>
@@ -69,6 +77,9 @@
         ];
 
         let currentLesson = 0;
+        const canvas = document.getElementById("writingCanvas");
+        const ctx = canvas.getContext("2d");
+        let isDrawing = false;
 
         function updateLesson() {
             document.getElementById("tamilCharacter").textContent = lessons[currentLesson].tamil;
@@ -76,6 +87,7 @@
             document.getElementById("audioPlayer").src = lessons[currentLesson].audio;
             document.getElementById("progressBar").style.width = ((currentLesson + 1) / lessons.length) * 100 + "%";
             localStorage.setItem("tamilTutorProgress", currentLesson);
+            clearCanvas();
         }
 
         function playAudio() {
@@ -87,6 +99,25 @@
                 currentLesson++;
                 updateLesson();
             }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.addEventListener("mousedown", () => { isDrawing = true; });
+        canvas.addEventListener("mouseup", () => { isDrawing = false; ctx.beginPath(); });
+        canvas.addEventListener("mousemove", draw);
+
+        function draw(event) {
+            if (!isDrawing) return;
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "black";
+            ctx.lineTo(event.offsetX, event.offsetY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.offsetX, event.offsetY);
         }
 
         window.onload = function () {
