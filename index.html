@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tamil Tutor</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handwriting-detection"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -53,7 +51,6 @@
             margin-top: 10px;
             cursor: crosshair;
             touch-action: none;
-            background: white;
         }
     </style>
 </head>
@@ -67,7 +64,6 @@
         <canvas id="writingCanvas" width="300" height="300"></canvas>
         <br>
         <button onclick="clearCanvas()">Clear</button>
-        <p id="accuracy">Accuracy: --%</p>
     </div>
     <br>
     <button id="backBtn" onclick="prevLesson()">Back</button>
@@ -118,28 +114,32 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
+        function getCanvasCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            if (event.touches) {
+                event.preventDefault();
+                let touch = event.touches[0];
+                return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+            } else {
+                return { x: event.offsetX, y: event.offsetY };
+            }
+        }
+
         function startDrawing(event) {
             isDrawing = true;
-            draw(event);
+            let { x, y } = getCanvasCoordinates(event);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
         }
 
         function stopDrawing() {
             isDrawing = false;
             ctx.beginPath();
-            recognizeHandwriting();
         }
 
         function draw(event) {
             if (!isDrawing) return;
-            let x, y;
-            if (event.touches) {
-                let touch = event.touches[0];
-                x = touch.clientX - canvas.getBoundingClientRect().left;
-                y = touch.clientY - canvas.getBoundingClientRect().top;
-            } else {
-                x = event.offsetX;
-                y = event.offsetY;
-            }
+            let { x, y } = getCanvasCoordinates(event);
             ctx.lineWidth = 5;
             ctx.lineCap = "round";
             ctx.strokeStyle = "black";
@@ -147,12 +147,6 @@
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
-        }
-
-        async function recognizeHandwriting() {
-            // Placeholder for handwriting recognition
-            let accuracy = Math.floor(Math.random() * 100) + 1;
-            document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
         }
 
         canvas.addEventListener("mousedown", startDrawing);
