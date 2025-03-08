@@ -10,8 +10,8 @@
             text-align: center;
             padding: 20px;
         }
-        .card {
-            display: inline-block;
+        .card, .lesson-container {
+            display: none;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 10px;
@@ -46,29 +46,26 @@
             background: gray;
             cursor: not-allowed;
         }
-        canvas {
-            border: 2px solid black;
-            margin-top: 10px;
-            cursor: crosshair;
-            touch-action: none;
-        }
     </style>
 </head>
 <body>
     <h1>Learn Tamil</h1>
-    <button onclick="goToLessons()">UYIR YELUTHUKKAL</button>
-    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-    <div class="card">
-        <h2 id="tamilCharacter">அ</h2>
-        <p id="transliteration">a</p>
-        <button onclick="playAudio()">🔊 Pronounce</button>
-        <canvas id="writingCanvas" width="300" height="300"></canvas>
+    <button onclick="showLessonPage()">UYIR YELUTHUKKAL</button>
+    
+    <div class="lesson-container" id="lessonPage">
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="card">
+            <h2 id="tamilCharacter">அ</h2>
+            <p id="transliteration">a</p>
+            <button onclick="playAudio()">🔊 Pronounce</button>
+            <canvas id="writingCanvas" width="300" height="300"></canvas>
+            <br>
+            <button onclick="clearCanvas()">Clear</button>
+        </div>
         <br>
-        <button onclick="clearCanvas()">Clear</button>
+        <button id="backBtn" onclick="prevLesson()">Back</button>
+        <button id="nextBtn" onclick="nextLesson()">Next</button>
     </div>
-    <br>
-    <button id="backBtn" onclick="prevLesson()">Back</button>
-    <button id="nextBtn" onclick="nextLesson()">Next</button>
 
     <audio id="audioPlayer" src="audio/a.mp3"></audio>
 
@@ -78,15 +75,10 @@
             { tamil: "ஆ", transliteration: "aa", audio: "audio/aa.mp3" },
             { tamil: "இ", transliteration: "i", audio: "audio/i.mp3" }
         ];
-
+        
         let currentLesson = 0;
-        const canvas = document.getElementById("writingCanvas");
-        const ctx = canvas.getContext("2d");
-        let isDrawing = false;
-
-        function goToLessons() {
-            currentLesson = 0;
-            updateLesson();
+        function showLessonPage() {
+            document.getElementById("lessonPage").style.display = "block";
         }
 
         function updateLesson() {
@@ -117,46 +109,10 @@
         }
 
         function clearCanvas() {
+            const canvas = document.getElementById("writingCanvas");
+            const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-
-        function startDrawing(event) {
-            isDrawing = true;
-            draw(event);
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-            ctx.beginPath();
-        }
-
-        function draw(event) {
-            if (!isDrawing) return;
-            let x, y;
-            if (event.touches) {
-                let touch = event.touches[0];
-                x = touch.clientX - canvas.getBoundingClientRect().left;
-                y = touch.clientY - canvas.getBoundingClientRect().top;
-            } else {
-                x = event.offsetX;
-                y = event.offsetY;
-            }
-            ctx.lineWidth = 5;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "black";
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener("mousedown", startDrawing);
-        canvas.addEventListener("mouseup", stopDrawing);
-        canvas.addEventListener("mousemove", draw);
-        
-        canvas.addEventListener("touchstart", startDrawing);
-        canvas.addEventListener("touchend", stopDrawing);
-        canvas.addEventListener("touchmove", draw);
 
         window.onload = function () {
             let savedProgress = localStorage.getItem("tamilTutorProgress");
