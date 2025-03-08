@@ -10,12 +10,15 @@
             text-align: center;
             padding: 20px;
         }
-        .button-container {
-            margin: 20px;
+        .hidden {
+            display: none;
+        }
+        .lesson-container {
+            margin-top: 20px;
         }
         button {
-            padding: 10px 20px;
             margin: 10px;
+            padding: 10px 20px;
             border: none;
             background: blue;
             color: white;
@@ -23,177 +26,106 @@
             cursor: pointer;
             border-radius: 5px;
         }
-        .grid-table {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .grid-table div {
-            padding: 15px;
-            border: 1px solid black;
-            text-align: center;
-            font-size: 24px;
-            cursor: pointer;
-            background: lightgray;
-            border-radius: 5px;
-        }
-        .grid-table div:hover {
-            background: darkgray;
-        }
         canvas {
             border: 2px solid black;
             margin-top: 10px;
-            background: white;
+            cursor: crosshair;
         }
-        #homePage, #lessonPage, #tablePage {
-            display: none;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid black;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <!-- Home Page -->
     <div id="homePage">
         <h1>Learn Tamil</h1>
-        <div class="button-container">
-            <button onclick="goToLessons('uyir')">UYIR YELUTHUKKAL</button>
-            <button onclick="goToLessons('maei')">MAEI YELUTHUKKAL</button>
-            <button onclick="goToTable()">UYIR MAEI YELUTHUKKAL</button>
-        </div>
+        <button onclick="showLesson('uyir')">UYIR YELUTHUKKAL</button>
+        <button onclick="showLesson('mei')">MAEI YELUTHUKKAL</button>
+        <button onclick="showLesson('uyirMei')">UYIR MAEI YELUTHUKKAL</button>
     </div>
-
-    <!-- Lesson Page for Uyir & Maei -->
-    <div id="lessonPage">
-        <button onclick="goHome()">🏠 Home</button>
-        <h2 id="lessonTitle"></h2>
-        <p id="tamilCharacter" style="font-size: 50px;"></p>
+    
+    <div id="uyirLesson" class="hidden lesson-container">
+        <button onclick="goHome()">Home</button>
+        <h2>UYIR YELUTHUKKAL</h2>
+        <h3 id="tamilCharacter">அ</h3>
+        <p id="transliteration">a</p>
         <button onclick="playAudio()">🔊 Pronounce</button>
-        <br><br>
-        
-        <!-- Drawing Canvas -->
-        <canvas id="drawingCanvas" width="300" height="300"></canvas>
-        <br>
-        <button onclick="clearCanvas()">🧹 Clear</button>
-        <br><br>
-
-        <button onclick="prevLesson()">Back</button>
-        <button onclick="nextLesson()">Next</button>
-        <audio id="audioPlayer"></audio>
+        <canvas id="writingCanvas" width="300" height="300"></canvas>
+        <button onclick="clearCanvas()">Clear</button>
     </div>
-
-    <!-- Uyir Maei Table Page -->
-    <div id="tablePage">
-        <button onclick="goHome()">🏠 Home</button>
+    
+    <div id="meiLesson" class="hidden lesson-container">
+        <button onclick="goHome()">Home</button>
+        <h2>MAEI YELUTHUKKAL</h2>
+        <h3 id="meiCharacter">க</h3>
+        <p id="meiTransliteration">ka</p>
+        <button onclick="playAudio()">🔊 Pronounce</button>
+        <canvas id="writingCanvasMei" width="300" height="300"></canvas>
+        <button onclick="clearCanvas()">Clear</button>
+    </div>
+    
+    <div id="uyirMeiLesson" class="hidden lesson-container">
+        <button onclick="goHome()">Home</button>
         <h2>UYIR MAEI YELUTHUKKAL</h2>
-        <div class="grid-table" id="letterTable"></div>
-        <audio id="tableAudio"></audio>
+        <table id="uyirMeiTable"></table>
     </div>
-
+    
     <script>
-        const uyirLetters = ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"];
-        const meiLetters = ["க்", "ங்", "ச்", "ஞ்", "ட்", "ண்", "த்", "ந்", "ப்", "ம்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்", "ற்", "ன்"];
-        const uyirMaeiLetters = [];
-
-        meiLetters.forEach(mei => {
-            uyirLetters.forEach(uyir => {
-                uyirMaeiLetters.push(mei.replace("்", "") + uyir);
-            });
-        });
-
-        let lessonType = "";
-        let lessonIndex = 0;
-        const uyirLesson = uyirLetters;
-        const meiLesson = meiLetters;
-
-        function goToLessons(type) {
-            lessonType = type;
-            lessonIndex = 0;
-            document.getElementById("homePage").style.display = "none";
-            document.getElementById("lessonPage").style.display = "block";
-            document.getElementById("lessonTitle").textContent = type === "uyir" ? "UYIR YELUTHUKKAL" : "MAEI YELUTHUKKAL";
-            loadLesson();
+        function showLesson(lesson) {
+            document.getElementById("homePage").classList.add("hidden");
+            document.getElementById("uyirLesson").classList.add("hidden");
+            document.getElementById("meiLesson").classList.add("hidden");
+            document.getElementById("uyirMeiLesson").classList.add("hidden");
+            document.getElementById(lesson + "Lesson").classList.remove("hidden");
         }
-
-        function loadLesson() {
-            const lessonArray = lessonType === "uyir" ? uyirLesson : meiLesson;
-            document.getElementById("tamilCharacter").textContent = lessonArray[lessonIndex];
-            clearCanvas();
-        }
-
-        function nextLesson() {
-            const lessonArray = lessonType === "uyir" ? uyirLesson : meiLesson;
-            if (lessonIndex < lessonArray.length - 1) {
-                lessonIndex++;
-                loadLesson();
-            }
-        }
-
-        function prevLesson() {
-            if (lessonIndex > 0) {
-                lessonIndex--;
-                loadLesson();
-            }
-        }
-
-        function playAudio() {
-            const letter = document.getElementById("tamilCharacter").textContent;
-            const audioPlayer = document.getElementById("audioPlayer");
-            audioPlayer.src = `audio/${letter}.mp3`;
-            audioPlayer.play();
-        }
-
-        function goToTable() {
-            document.getElementById("homePage").style.display = "none";
-            document.getElementById("tablePage").style.display = "block";
-            generateTable();
-        }
-
-        function generateTable() {
-            const table = document.getElementById("letterTable");
-            table.innerHTML = "";
-            uyirMaeiLetters.forEach(letter => {
-                const cell = document.createElement("div");
-                cell.textContent = letter;
-                cell.onclick = () => playLetterAudio(letter);
-                table.appendChild(cell);
-            });
-        }
-
-        function playLetterAudio(letter) {
-            const audioPlayer = document.getElementById("tableAudio");
-            audioPlayer.src = `audio/${letter}.mp3`;
-            audioPlayer.play();
-        }
-
+        
         function goHome() {
-            document.getElementById("homePage").style.display = "block";
-            document.getElementById("lessonPage").style.display = "none";
-            document.getElementById("tablePage").style.display = "none";
+            document.getElementById("homePage").classList.remove("hidden");
+            document.getElementById("uyirLesson").classList.add("hidden");
+            document.getElementById("meiLesson").classList.add("hidden");
+            document.getElementById("uyirMeiLesson").classList.add("hidden");
         }
-
-        // Drawing Canvas
-        const canvas = document.getElementById("drawingCanvas");
-        const ctx = canvas.getContext("2d");
-        let drawing = false;
-
-        canvas.addEventListener("mousedown", () => { drawing = true; });
-        canvas.addEventListener("mouseup", () => { drawing = false; ctx.beginPath(); });
-        canvas.addEventListener("mousemove", draw);
-
-        function draw(event) {
-            if (!drawing) return;
-            ctx.lineWidth = 5;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "black";
-            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
-        }
-
+        
         function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.querySelectorAll("canvas").forEach(canvas => {
+                let ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
         }
+        
+        function playAudio() {
+            alert("Pronouncing Tamil Letter");
+        }
+        
+        function generateUyirMeiTable() {
+            let table = document.getElementById("uyirMeiTable");
+            let tamilLetters = "அஆஇஈஉஊஎஏஐஒஓஔ";
+            let meiLetters = "கஙசஞடணதநபமயரலவழளறன";
+            
+            let html = "";
+            for (let i = 0; i < meiLetters.length; i++) {
+                html += "<tr>";
+                for (let j = 0; j < tamilLetters.length; j++) {
+                    let combinedLetter = meiLetters[i] + tamilLetters[j];
+                    html += `<td onclick="playLetter('${combinedLetter}')">${combinedLetter}</td>`;
+                }
+                html += "</tr>";
+            }
+            table.innerHTML = html;
+        }
+        
+        function playLetter(letter) {
+            alert("Playing: " + letter);
+        }
+        
+        window.onload = generateUyirMeiTable;
     </script>
 </body>
 </html>
