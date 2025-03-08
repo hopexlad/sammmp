@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tamil Tutor</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handwriting-detection"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -52,6 +53,7 @@
             margin-top: 10px;
             cursor: crosshair;
             touch-action: none;
+            background: white;
         }
     </style>
 </head>
@@ -65,8 +67,7 @@
         <canvas id="writingCanvas" width="300" height="300"></canvas>
         <br>
         <button onclick="clearCanvas()">Clear</button>
-        <button onclick="checkWriting()">Check Writing</button>
-        <p id="accuracyResult"></p>
+        <p id="accuracy">Accuracy: --%</p>
     </div>
     <br>
     <button id="backBtn" onclick="prevLesson()">Back</button>
@@ -115,7 +116,6 @@
 
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            document.getElementById("accuracyResult").textContent = "";
         }
 
         function startDrawing(event) {
@@ -126,6 +126,7 @@
         function stopDrawing() {
             isDrawing = false;
             ctx.beginPath();
+            recognizeHandwriting();
         }
 
         function draw(event) {
@@ -148,20 +149,10 @@
             ctx.moveTo(x, y);
         }
 
-        async function checkWriting() {
-            // Load a simple TensorFlow.js model for recognition
-            const model = await tf.loadLayersModel('https://storage.googleapis.com/tamil-handwriting-model/model.json');
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const tensor = tf.browser.fromPixels(imgData)
-                .resizeNearestNeighbor([28, 28])
-                .mean(2)
-                .expandDims(0)
-                .expandDims(-1)
-                .toFloat().div(tf.scalar(255));
-            
-            const prediction = model.predict(tensor);
-            const accuracy = prediction.dataSync()[0] * 100;
-            document.getElementById("accuracyResult").textContent = `Accuracy: ${accuracy.toFixed(2)}%`;
+        async function recognizeHandwriting() {
+            // Placeholder for handwriting recognition
+            let accuracy = Math.floor(Math.random() * 100) + 1;
+            document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
         }
 
         canvas.addEventListener("mousedown", startDrawing);
