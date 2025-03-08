@@ -60,11 +60,13 @@
 <body>
     <div id="homePage">
         <h1>Learn Tamil</h1>
-        <button onclick="showLessonPage()">UYIR YELUTHUKKAL</button>
+        <button onclick="goToLessons('uyir')">UYIR YELUTHUKKAL</button>
+        <button onclick="goToLessons('maei')">MAEI YELUTHUKKAL</button>
     </div>
 
     <div id="lessonPage">
-        <button onclick="showHomePage()">Home</button>
+        <button onclick="goHome()">🏠 Home</button>
+        <h2 id="lessonTitle"></h2>
         <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
         <div class="card">
             <h2 id="tamilCharacter">அ</h2>
@@ -77,39 +79,47 @@
         <br>
         <button id="backBtn" onclick="prevLesson()">Back</button>
         <button id="nextBtn" onclick="nextLesson()">Next</button>
+        <audio id="audioPlayer"></audio>
     </div>
 
-    <audio id="audioPlayer" src="audio/a.mp3"></audio>
-
     <script>
-        function showLessonPage() {
-            document.getElementById("homePage").style.display = "none";
-            document.getElementById("lessonPage").style.display = "block";
-            updateLesson();
-        }
-
-        function showHomePage() {
-            document.getElementById("homePage").style.display = "block";
-            document.getElementById("lessonPage").style.display = "none";
-        }
-
-        const lessons = [
+        const uyirLessons = [
             { tamil: "அ", transliteration: "a", audio: "audio/a.mp3" },
             { tamil: "ஆ", transliteration: "aa", audio: "audio/aa.mp3" },
             { tamil: "இ", transliteration: "i", audio: "audio/i.mp3" }
         ];
+        
+        const maeiLessons = [
+            { tamil: "க", transliteration: "ka", audio: "audio/ka.mp3" },
+            { tamil: "ங", transliteration: "nga", audio: "audio/nga.mp3" },
+            { tamil: "ச", transliteration: "cha", audio: "audio/cha.mp3" }
+        ];
 
         let currentLesson = 0;
+        let currentLessons = [];
         const canvas = document.getElementById("writingCanvas");
         const ctx = canvas.getContext("2d");
         let isDrawing = false;
 
+        function goToLessons(type) {
+            currentLessons = type === 'uyir' ? uyirLessons : maeiLessons;
+            document.getElementById("lessonTitle").textContent = type === 'uyir' ? "UYIR YELUTHUKKAL" : "MAEI YELUTHUKKAL";
+            document.getElementById("homePage").style.display = "none";
+            document.getElementById("lessonPage").style.display = "block";
+            currentLesson = 0;
+            updateLesson();
+        }
+
+        function goHome() {
+            document.getElementById("lessonPage").style.display = "none";
+            document.getElementById("homePage").style.display = "block";
+        }
+
         function updateLesson() {
-            document.getElementById("tamilCharacter").textContent = lessons[currentLesson].tamil;
-            document.getElementById("transliteration").textContent = lessons[currentLesson].transliteration;
-            document.getElementById("audioPlayer").src = lessons[currentLesson].audio;
-            document.getElementById("progressBar").style.width = ((currentLesson + 1) / lessons.length) * 100 + "%";
-            localStorage.setItem("tamilTutorProgress", currentLesson);
+            document.getElementById("tamilCharacter").textContent = currentLessons[currentLesson].tamil;
+            document.getElementById("transliteration").textContent = currentLessons[currentLesson].transliteration;
+            document.getElementById("audioPlayer").src = currentLessons[currentLesson].audio;
+            document.getElementById("progressBar").style.width = ((currentLesson + 1) / currentLessons.length) * 100 + "%";
             clearCanvas();
         }
 
@@ -118,7 +128,7 @@
         }
 
         function nextLesson() {
-            if (currentLesson < lessons.length - 1) {
+            if (currentLesson < currentLessons.length - 1) {
                 currentLesson++;
                 updateLesson();
             }
